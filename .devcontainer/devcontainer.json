@@ -1,0 +1,6 @@
+
+{
+  "name": "SuperKart Sales Forecasting",
+  "postStartCommand": "bash scripts/start-apps-lite.sh"
+}
+
