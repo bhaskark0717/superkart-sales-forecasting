@@ -14,7 +14,6 @@ fail() {
   exit 1
 }
 
-# Verify required files
 for file in \
   backend/Dockerfile \
   frontend/Dockerfile \
@@ -23,43 +22,34 @@ do
   [[ -f "$file" ]] || fail "Missing required file: $file"
 done
 
-# Verify Docker is responsive
 log "Checking Docker..."
 docker info >/dev/null 2>&1 ||
-  fail "Docker is unavailable or unhealthy. Stop here and check Codespaces."
+  fail "Docker is unavailable or unhealthy."
 
-# Remove build cache only; preserve containers and volumes
-log "Cleaning Docker build cache..."
-docker builder prune -af ||
-  fail "Build-cache cleanup failed. No containers or volumes were intentionally removed."
+if ! docker image inspect superkart-backend:latest >/dev/null 2>&1; then
+  log "Backend image missing; building it..."
+  docker build -t superkart-backend:latest ./backend ||
+    fail "Backend image build failed."
+else
+  log "Backend image exists; skipping build."
+fi
 
-# Build backend
-log "Building backend image..."
-docker build --no-cache \
-  -t superkart-backend:latest ./backend ||
-  fail "Backend build failed. Check the Docker error above."
+if ! docker image inspect superkart-frontend:latest >/dev/null 2>&1; then
+  log "Frontend image missing; building it..."
+  docker build -t superkart-frontend:latest ./frontend ||
+    fail "Frontend image build failed."
+else
+  log "Frontend image exists; skipping build."
+fi
 
-# Build frontend
-log "Building frontend image..."
-docker build --no-cache \
-  -t superkart-frontend:latest ./frontend ||
-  fail "Frontend build failed. Check the Docker error above."
-
-# Verify both images
 log "Verifying images..."
 docker image inspect superkart-backend:latest >/dev/null ||
   fail "Backend image verification failed."
-
 docker image inspect superkart-frontend:latest >/dev/null ||
   fail "Frontend image verification failed."
 
-docker image ls \
-  --filter reference=superkart-backend:latest \
-  --filter reference=superkart-frontend:latest
-
-# Start application using existing project script
 log "Starting SuperKart..."
-bash scripts/start-apps.sh
+bash scripts/start-apps.sh --lite
 
-log "SuperKart startup script completed."
+log "SuperKart startup completed."
 
