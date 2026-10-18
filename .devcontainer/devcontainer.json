@@ -1,6 +1,6 @@
 
 {
   "name": "SuperKart Sales Forecasting",
-  "postStartCommand": "bash scripts/start-apps-lite.sh"
+  "postStartCommand": "bash -lc 'cd /workspaces/superkart-sales-forecasting && bash scripts/start-apps-lite.sh >> /tmp/superkart-startup.log 2>&1'"
 }
 
